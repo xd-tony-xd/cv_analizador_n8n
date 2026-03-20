@@ -3,16 +3,30 @@ export const analizarCV = async (file, requisitos) => {
   formData.append("cv", file);
   formData.append("requisitos", requisitos);
 
-  const response = await fetch(
-    "https://n8n-dqmewasf.us-west-1.clawcloudrun.com/webhook/analizar-cv",
-    {
-      method: "POST",
-      body: formData,
+  try {
+    const response = await fetch(
+      "https://n8n-dqmewasf.us-west-1.clawcloudrun.com/webhook/analizar-cv",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
     }
-  );
 
-  const data = await response.json();
+    const text = await response.text();
+    
+    if (!text || text.trim() === "") {
+      throw new Error("Respuesta vacía de n8n");
+    }
 
-  // Si n8n devuelve un array, tomamos el primer elemento; si no, el objeto directo
-  return Array.isArray(data) ? data[0] : data;
+    const data = JSON.parse(text);
+    return Array.isArray(data) ? data[0] : data;
+
+  } catch (error) {
+    console.error("Error en la petición:", error);
+    throw error;
+  }
 };

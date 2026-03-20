@@ -3,87 +3,69 @@ import { analizarCV } from "./api";
 
 function App() {
   const [file, setFile] = useState(null);
-  const [requisitos, setRequisitos] = useState(`Se busca desarrollador backend con experiencia en Java y Spring Boot...`);
+  const [requisitos, setRequisitos] = useState("");
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const enviarCV = async () => {
-    if (!file) {
-      alert("Sube un CV primero");
+    if (!file || !requisitos) {
+      alert("Por favor, sube un PDF y escribe los requisitos.");
       return;
     }
 
     setLoading(true);
     setResultado(null);
+    setErrorMsg(null);
 
     try {
       const data = await analizarCV(file, requisitos);
-      
-      // n8n a veces envía un array [{}], extraemos el objeto
-      const res = Array.isArray(data) ? data[0] : data;
-      setResultado(res);
+      setResultado(data);
     } catch (error) {
-      console.error(error);
-      alert("Error analizando CV");
+      setErrorMsg("Hubo un problema al conectar con la IA. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", fontFamily: "Arial", maxWidth: "800px", margin: "auto" }}>
-      <h1>Analizador de CV con IA</h1>
+    <div style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "700px", margin: "auto" }}>
+      <header style={{ textAlign: "center", marginBottom: "30px" }}>
+        <h1>🚀 Analizador de CV con IA</h1>
+      </header>
 
-      <h3>1. Subir CV (PDF)</h3>
-      <input
-        type="file"
-        accept="application/pdf"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
+      <div style={{ backgroundColor: "#f4f4f4", padding: "20px", borderRadius: "10px" }}>
+        <h3>1. Sube tu CV (PDF)</h3>
+        <input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files[0])} />
 
-      <br /><br />
+        <h3 style={{ marginTop: "20px" }}>2. Requisitos</h3>
+        <textarea
+          rows="5"
+          style={{ width: "100%", padding: "10px", borderRadius: "5px" }}
+          value={requisitos}
+          onChange={(e) => setRequisitos(e.target.value)}
+          placeholder="Pega aquí lo que busca la empresa..."
+        />
 
-      <h3>2. Requisitos del puesto</h3>
-      <textarea
-        rows="7"
-        style={{ width: "100%", padding: "10px" }}
-        value={requisitos}
-        onChange={(e) => setRequisitos(e.target.value)}
-      />
+        <button 
+          onClick={enviarCV} 
+          disabled={loading}
+          style={{ 
+            width: "100%", marginTop: "20px", padding: "15px", 
+            backgroundColor: loading ? "#ccc" : "#007bff", color: "white", 
+            border: "none", borderRadius: "5px", cursor: "pointer" 
+          }}
+        >
+          {loading ? "Analizando..." : "Analizar Perfil"}
+        </button>
+      </div>
 
-      <br /><br />
+      {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
 
-      <button onClick={enviarCV} disabled={loading} style={{ padding: "10px 20px", cursor: "pointer" }}>
-        {loading ? "Analizando..." : "Analizar CV"}
-      </button>
-
-      {/* AQUÍ ESTABA EL ERROR: USAR LLAVES DE REACT, NO DE N8N */}
       {resultado && (
-        <div style={{
-          marginTop: "30px",
-          padding: "20px",
-          border: "2px solid #27ae60",
-          borderRadius: "10px",
-          backgroundColor: "#f9fefb"
-        }}>
-          <h2 style={{ color: "#27ae60" }}>Análisis Completado</h2>
-
-          <div style={{ fontSize: "20px", marginBottom: "10px" }}>
-            <b>Puntaje de Match:</b> 
-            <span style={{ fontWeight: "bold", marginLeft: "5px" }}>
-              {resultado.puntaje}%
-            </span>
-          </div>
-
-          <p><b>Descripción del perfil:</b></p>
-          <div style={{ 
-            padding: "15px", 
-            backgroundColor: "white", 
-            border: "1px solid #eee", 
-            borderRadius: "5px" 
-          }}>
-            {resultado.descripcion}
-          </div>
+        <div style={{ marginTop: "30px", padding: "20px", border: "2px solid green", borderRadius: "10px" }}>
+          <h2>Resultado: {resultado.puntaje}%</h2>
+          <p>{resultado.descripcion}</p>
         </div>
       )}
     </div>
