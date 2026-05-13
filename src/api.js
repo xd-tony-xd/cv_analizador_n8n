@@ -5,7 +5,7 @@ export const analizarCV = async (file, requisitos) => {
 
   try {
     const response = await fetch(
-      "https://n8n-dqmewasf.us-west-1.clawcloudrun.com/webhook/analizar-cv",
+      "https://antonyxd.app.n8n.cloud/webhook/analizar-cv",
       {
         method: "POST",
         body: formData,
